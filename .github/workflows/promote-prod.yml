@@ -1,0 +1,48 @@
+name: Promote to production
+
+# Manual gate: after you have tested the staging preview by hand, run this
+# workflow. The job targets the `production` GitHub Environment, which should
+# be configured with required reviewers so the run pauses for your approval
+# before anything is promoted.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or SHA to promote (must be green on CI)
+        required: true
+        default: staging
+
+jobs:
+  smoke-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.STAGING_URL }}
+
+  promote:
+    needs: smoke-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fast-forward main to the approved ref
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git merge --ff-only "origin/${{ inputs.ref }}"
+          git push origin main
