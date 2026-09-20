@@ -19,6 +19,31 @@ To run the E2E suite against an already deployed URL:
 PLAYWRIGHT_BASE_URL=https://devin-test-git-staging-<team>.vercel.app npm run test:e2e
 ```
 
+## Authentication
+
+Google sign-in via Auth.js (NextAuth v5). Signed-out visitors see `Hello, world` and a
+"Sign in with Google" button; signed-in users see `<their name>, hello`.
+
+Copy `.env.example` to `.env.local` and fill in:
+
+| Variable | Where it comes from |
+| --- | --- |
+| `AUTH_SECRET` | `npx auth secret` |
+| `GOOGLE_CLIENT_ID` | Google Cloud → APIs & Services → Credentials → OAuth 2.0 Web client |
+| `GOOGLE_CLIENT_SECRET` | same client |
+
+Set the same three variables in the Vercel project for Production, Preview and Development.
+Add every origin the app runs on as an authorized redirect URI on the Google client:
+
+```
+http://localhost:3000/api/auth/callback/google
+https://<staging-alias>.vercel.app/api/auth/callback/google
+https://<production-domain>/api/auth/callback/google
+```
+
+Preview deployments get a new URL per branch, so either add the branch alias to the Google
+client or test sign-in on the stable staging alias.
+
 ## Environments
 
 One Vercel project serves all three environments; there is no separate server per environment.

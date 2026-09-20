@@ -1,8 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-test("shows the hello heading", async ({ page }) => {
+test("shows the hello heading and a Google sign-in button when signed out", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hello, world" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+});
+
+test("sign-in kicks off the Google OAuth flow", async ({ page }) => {
+  await page.goto("/");
+  const [request] = await Promise.all([
+    page.waitForRequest((r) => r.url().startsWith("https://accounts.google.com/")),
+    page.getByRole("button", { name: "Sign in with Google" }).click(),
+  ]);
+  expect(decodeURIComponent(request.url())).toContain("/api/auth/callback/google");
 });
 
 test("greets in a random language when the button is clicked", async ({ page }) => {

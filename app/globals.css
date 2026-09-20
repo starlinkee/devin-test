@@ -39,6 +39,10 @@ h1 {
   color: #64748b;
 }
 
+form {
+  margin-top: 1rem;
+}
+
 button {
   font: inherit;
   padding: 0.75rem 1.75rem;
