@@ -12,7 +12,10 @@ test("sign-in kicks off the Google OAuth flow", async ({ page }) => {
     page.waitForRequest((r) => r.url().startsWith("https://accounts.google.com/")),
     page.getByRole("button", { name: "Sign in with Google" }).click(),
   ]);
-  expect(decodeURIComponent(request.url())).toContain("/api/auth/callback/google");
+  const url = new URL(request.url());
+  expect(url.searchParams.get("redirect_uri")).toContain("/api/auth/callback/google");
+  expect(url.searchParams.get("client_id")).toBeTruthy();
+  expect(url.searchParams.get("client_id")).not.toBe("undefined");
 });
 
 test("greets in a random language when the button is clicked", async ({ page }) => {
